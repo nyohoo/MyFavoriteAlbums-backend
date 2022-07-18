@@ -48,3 +48,8 @@ gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 # SpotifyAPI
 gem 'rspotify'
 gem 'dotenv-rails'
+
+# Twitter認証
+gem 'devise_token_auth'
+gem 'omniauth-twitter'
+gem 'omniauth-rails_csrf_protection' 
