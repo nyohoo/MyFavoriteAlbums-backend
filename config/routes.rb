@@ -7,10 +7,11 @@ Rails.application.routes.draw do
 
       mount_devise_token_auth_for 'User', at: 'auth', controllers: {
         omniauth_callbacks: 'overrides/omniauth_callbacks',
-        registrations: 'api/v1/auth/registrations'
       }
 
       get '/search', to: 'songs#search'
+      get '/get_albums', to: 'songs#get_albums'
+      post '/post_albums', to: 'songs#post_albums'
     end
   end
 end
