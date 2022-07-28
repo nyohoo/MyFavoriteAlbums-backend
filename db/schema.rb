@@ -57,8 +57,7 @@ ActiveRecord::Schema.define(version: 2022_07_27_164516) do
   end
 
   create_table "posts", force: :cascade do |t|
-    t.text "image", null: false
-    t.string "hash_tags", null: false
+    t.string "hash_tag", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.integer "user_id", null: false
