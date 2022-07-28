@@ -2,11 +2,7 @@ class Api::V1::PostsController < ApplicationController
 
   def create
     if api_v1_user_signed_in?
-      albums = params[:albums]
       hash_tag = params[:hash_tag]
-
-      logger.debug("hash_tag: #{params[:hash_tag]}")
-
       image_paths = []
       album_ids = []
       # 画像URLを配列に格納
@@ -26,32 +22,26 @@ class Api::V1::PostsController < ApplicationController
       # 画像パスの取得
       image_path = "tmp/images/#{uid}.jpg"
       album_ids
-
       # Postモデルに新規投稿
-      @post = Post.new(
+      tmp = Post.new(
         user_id: current_api_v1_user.id,
         hash_tag: hash_tag
       )
-      binding.pry
-      post = @post.image.attach(io: File.open(image_path), filename: File.basename(image_path), content_type: 'image/jpg')
-      if post.image.attached?
-        if post.save
-          # Albumモデルに新規アルバムを作成
-          album_ids.each do |album_id|
-            Album.create(
-              album_id: album_id,
-              post_id: post.id
-            )
-          end
-          render json: post
-        else
-          render json: { error: post.errors.full_messages }, status: :unprocessable_entity
+      post = tmp.image.attach(io: File.open(image_path), filename: File.basename(image_path), content_type: 'image/jpg')
+      # issue:imageが保存されているか確認する処理を追加
+      
+      if post.record.save
+        # Albumモデルに新規アルバムを作成
+        album_ids.each do |album_id|
+          Album.create(
+            album_id: album_id,
+            post_id: post.record.id
+          )
         end
+        render json: post
       else
-        render json: { error: "画像がありません" }, status: :unprocessable_entity
+        render json: { error: post.errors.full_messages }, status: :unprocessable_entity
       end
-
-
     else
       render json: { error: "ログインしてください" }, status: :unauthorized
     end

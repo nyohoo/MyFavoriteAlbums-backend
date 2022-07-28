@@ -4,5 +4,4 @@ class Post < ApplicationRecord
   has_many :albums, dependent: :destroy
   has_many :users, through: :likes
   has_one_attached :image
-
 end
