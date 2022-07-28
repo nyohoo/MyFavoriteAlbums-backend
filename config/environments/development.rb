@@ -66,4 +66,7 @@ Rails.application.configure do
 
   # ActiveStorage導入でNameError: uninitialized constant ::Analyzableエラーが発生した対処
   config.autoloader = :classic
+
+  # urlに関する設定
+  default_url_options[:host] = "localhost:3000"
 end
