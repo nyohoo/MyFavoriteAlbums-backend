@@ -56,3 +56,6 @@ gem 'dotenv-rails'
 gem 'devise_token_auth'
 gem 'omniauth-twitter'
 gem 'omniauth-rails_csrf_protection' 
+
+# S3
+gem 'aws-sdk-s3'
