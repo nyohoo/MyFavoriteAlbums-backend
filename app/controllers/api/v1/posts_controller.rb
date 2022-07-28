@@ -1,5 +1,10 @@
 class Api::V1::PostsController < ApplicationController
+  include Rails.application.routes.url_helpers
 
+  def show
+    @post = Post.find(params[:id])
+    render json: @post, include: [:user, :likes, :albums, :image]
+  end
   def create
     if api_v1_user_signed_in?
       # 一意の画像パス生成のためuidを生成
