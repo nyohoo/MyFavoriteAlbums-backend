@@ -8,6 +8,7 @@ Rails.application.routes.draw do
         omniauth_callbacks: 'overrides/omniauth_callbacks',
       }
       resources :posts, param: :uuid, only: %i[show create]
+      resources :users, param: :uid, only: %i[show]
       get '/search', to: 'songs#search'
     end
   end
