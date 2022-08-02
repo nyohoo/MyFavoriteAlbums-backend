@@ -8,19 +8,19 @@ class Api::V1::PostsController < ApplicationController
     #pagenation_controllerにて定義したメソッドを利用し、ページネーション情報を取得
     pagenation = resources_with_pagination(posts)
 
-    @posts = []
+    results = []
     posts.each do |post|
       # post.created_atを年月日のフォーマットに変更
       created_at = post.created_at.strftime("%Y年%m月%d日")
       # フロントエンドで使用するデータを生成
-      @posts << { post_uuid: post.uuid,
+      results << { post_uuid: post.uuid,
                   created_at: created_at,
                   hash_tag: post.hash_tag, 
                   image_path: post.image.service_url, 
                   user: post.user }
     end
     
-    response = { posts: @posts, kaminari: pagenation } 
+    response = { posts: results, kaminari: pagenation } 
     render json: response
   end
 
