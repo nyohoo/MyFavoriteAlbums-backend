@@ -1,7 +1,28 @@
 class Api::V1::PostsController < ApplicationController
-  include Rails.application.routes.url_helpers
+  include Rails.application.routes.url_helpers #url_forを利用するために、rails_helperをincludeする
   require 'rspotify'
   RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
+
+  def index
+    posts = Post.order("created_at DESC").page(params[:page]).per(5)
+    #pagenation_controllerにて定義したメソッドを利用し、ページネーション情報を取得
+    pagenation = resources_with_pagination(posts)
+
+    @posts = []
+    posts.each do |post|
+      # post.created_atを年月日のフォーマットに変更
+      created_at = post.created_at.strftime("%Y年%m月%d日")
+      # フロントエンドで使用するデータを生成
+      @posts << { post_uuid: post.uuid,
+                  created_at: created_at,
+                  hash_tag: post.hash_tag, 
+                  image_path: post.image.service_url, 
+                  user: post.user }
+    end
+    
+    response = { posts: @posts, kaminari: pagenation } 
+    render json: response
+  end
 
   def show
     # uuidを元にpostを取得

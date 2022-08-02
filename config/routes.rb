@@ -7,8 +7,12 @@ Rails.application.routes.draw do
       mount_devise_token_auth_for 'User', at: 'auth', controllers: {
         omniauth_callbacks: 'overrides/omniauth_callbacks',
       }
-      resources :posts, param: :uuid, only: %i[show create]
       resources :users, param: :uid, only: %i[show]
+
+      get 'posts/lists', param: :page, to: 'posts#index'
+      get 'posts/:uuid', param: :uuid, to: 'posts#show'
+      post 'posts', to: 'posts#create'
+
       get '/search', to: 'songs#search'
     end
   end
