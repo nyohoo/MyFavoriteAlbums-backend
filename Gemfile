@@ -59,3 +59,6 @@ gem 'omniauth-rails_csrf_protection'
 
 # S3
 gem 'aws-sdk-s3'
+
+# pagenation
+gem 'kaminari'
