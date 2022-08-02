@@ -8,4 +8,12 @@ class Api::V1::SongsController < ApplicationController
     render json: result
   end
 
+  def add_search
+    results = RSpotify::Album.search(params[:query], offset: params[:count],limit: 48, market: 'JP')
+    if results.length > 0
+      render json: results
+    else
+      render json: no_result
+    end
+  end
 end
