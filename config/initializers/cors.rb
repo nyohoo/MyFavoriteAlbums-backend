@@ -7,7 +7,7 @@
 
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    origins 'http://127.0.0.1:8080', 'http://my-favorite-albums-front.herokuapp.com'
+    origins 'http://localhost:8080', 'https://my-favorite-albums-front.herokuapp.com'
 
     resource '*',
       headers: :any,
