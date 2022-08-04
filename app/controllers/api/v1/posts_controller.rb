@@ -49,22 +49,20 @@ class Api::V1::PostsController < ApplicationController
 
   def create
     if api_v1_user_signed_in?
-      # 一意の画像パス生成のためuidを生成
-      uuid = SecureRandom.hex(8)
-
       # 一時保存した画像を格納する空の配列を生成
       tmp_images = []
 
-      # 本番環境(heroku)で、MiniMagickを使用するために、画像を一時的に保存する            
+      # heroku環境上では、MiniMagickを使用して画像加工するためにURLを直接開くと
+      # "attempt to perform an operation not allowed by the security policy `HTTPS'"のエラーが発生するため、
+      # 画像を一時的に保存する必要がある
       params[:image_paths].each do |image_path|
-        # open-uriで画像を開くためにurlを生成
-        url = image_path
+        
         # ファイル名を取得
-        filename = File.basename(url)
+        filename = File.basename(image_path)
 
         # 画像を保存するためにfilenameで設定したファイル名でバイナリファイルを作成
         open("./tmp/#{filename}", 'w+b') do |output|
-          URI.open(url) do |data|
+          URI.open(image_path) do |data|
             # urlから取得した画像データをバイナリで流し込んでいく
             output.puts(data.read)
 
@@ -74,6 +72,8 @@ class Api::V1::PostsController < ApplicationController
         end
       end
 
+      # 一意の値をtmp画像パスおよびpostのuuidに使用する
+      uuid = SecureRandom.hex(8)
       # 9枚のジャケットイメージを3×3のタイルに加工し、tmp_imagesフォルダに一時保存
       MiniMagick::Tool::Montage.new do |montage|
         tmp_images.each { |image| montage << image }
