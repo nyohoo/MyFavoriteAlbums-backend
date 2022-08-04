@@ -63,7 +63,7 @@ class Api::V1::PostsController < ApplicationController
         filename = File.basename(url)
 
         # 画像を保存するためにfilenameで設定したファイル名でバイナリファイルを作成
-        open("./public/tmp_images/#{filename}", 'w+b') do |output|
+        open("./tmp/#{filename}", 'w+b') do |output|
           URI.open(url) do |data|
             # urlから取得した画像データをバイナリで流し込んでいく
             output.puts(data.read)
@@ -79,11 +79,11 @@ class Api::V1::PostsController < ApplicationController
         tmp_images.each { |image| montage << image }
         montage.geometry "640x640+0+0"
         montage.tile "3x3"
-        montage << "public/tmp_images/#{uuid}.jpg"
+        montage << "./tmp/#{uuid}.jpg"
       end
 
       # tmpディレクト内の画像パスの取得
-      image_path = "public/tmp_images/#{uuid}.jpg"
+      image_path = "./tmp/#{uuid}.jpg"
 
       # postインスタンスを生成
       tmp = Post.new(
