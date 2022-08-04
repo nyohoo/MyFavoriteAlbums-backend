@@ -50,16 +50,22 @@ class Api::V1::PostsController < ApplicationController
       # 一意の画像パス生成のためuidを生成
       uuid = SecureRandom.hex(8)
 
+      # 本番環境(heroku)で、MiniMagickを使用するために、画像を一時的に保存する
+      
+
+
+
+
       # 9枚のジャケットイメージを3×3のタイルに加工し、tmpディレクトリに一時保存
       MiniMagick::Tool::Montage.new do |montage|
         params[:image_paths].each { |image| montage << image }
         montage.geometry "640x640+0+0"
         montage.tile "3x3"
-        montage << "tmp/images/#{uuid}.jpg"
+        montage << "public/tmp_images/#{uuid}.jpg"
       end
 
       # tmpディレクト内の画像パスの取得
-      image_path = "tmp/images/#{uuid}.jpg"
+      image_path = "public/tmp_images/#{uuid}.jpg"
 
       # postインスタンスを生成
       tmp = Post.new(
