@@ -104,4 +104,4 @@ yarn-debug.log*
 !/storage/.keep
 /public/uploads
 
-
+!/app/.magick/policy.xml
