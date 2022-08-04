@@ -1,6 +1,8 @@
 class Api::V1::PostsController < ApplicationController
   include Rails.application.routes.url_helpers #url_forを利用するために、rails_helperをincludeする
   require 'rspotify'
+  require 'open-uri'
+
   RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
 
   def index
@@ -50,15 +52,31 @@ class Api::V1::PostsController < ApplicationController
       # 一意の画像パス生成のためuidを生成
       uuid = SecureRandom.hex(8)
 
-      # 本番環境(heroku)で、MiniMagickを使用するために、画像を一時的に保存する
-      
+      # 一時保存した画像を格納する空の配列を生成
+      tmp_images = []
 
+      # 本番環境(heroku)で、MiniMagickを使用するために、画像を一時的に保存する            
+      params[:image_paths].each do |image_path|
+        # open-uriで画像を開くためにurlを生成
+        url = image_path
+        # ファイル名を取得
+        filename = File.basename(url)
 
+        # 画像を保存するためにfilenameで設定したファイル名でバイナリファイルを作成
+        open("./public/tmp_images/#{filename}", 'w+b') do |output|
+          URI.open(url) do |data|
+            # urlから取得した画像データをバイナリで流し込んでいく
+            output.puts(data.read)
 
+            # 作成したバイナリファイルを配列に格納
+            tmp_images << output.path
+          end
+        end
+      end
 
-      # 9枚のジャケットイメージを3×3のタイルに加工し、tmpディレクトリに一時保存
+      # 9枚のジャケットイメージを3×3のタイルに加工し、tmp_imagesフォルダに一時保存
       MiniMagick::Tool::Montage.new do |montage|
-        params[:image_paths].each { |image| montage << image }
+        tmp_images.each { |image| montage << image }
         montage.geometry "640x640+0+0"
         montage.tile "3x3"
         montage << "public/tmp_images/#{uuid}.jpg"
@@ -79,8 +97,12 @@ class Api::V1::PostsController < ApplicationController
                               filename: File.basename(image_path),
                               content_type: 'image/jpg')
 
-      # tmpディレクトリ内の画像を削除
+      # S3保存用に一時保存した画像を削除
       File.delete(image_path)
+      # tmp_imagesディレクト内の画像を削除
+      tmp_images.each do |image|
+        File.delete(image)
+      end
 
       # issue:imageが保存されているか確認する処理を追加
 
