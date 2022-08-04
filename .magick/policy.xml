@@ -1,5 +1,5 @@
 <policymap>
-  <policy domain="default" rights="read" pattern="*"/>
+  <policy domain="default" rights="read|write" pattern="*"/>
   <policy domain="delegate" rights="read|write" pattern="HTTPS" />
   <policy domain="coder" rights="read|write" pattern="HTTPS" />
 </policymap>
