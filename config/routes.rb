@@ -15,6 +15,8 @@ Rails.application.routes.draw do
 
       get '/search', to: 'songs#search'
       get '/add_search', to: 'songs#add_search'
+
+      post '/tweets', to: 'tweets#create'
     end
   end
 end
