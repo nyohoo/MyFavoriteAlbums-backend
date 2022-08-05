@@ -56,14 +56,13 @@ class Api::V1::PostsController < ApplicationController
       # "attempt to perform an operation not allowed by the security policy `HTTPS'"のエラーが発生するため、
       # 画像を一時的に保存する必要がある
       params[:image_paths].each do |image_path|
-        
+
         # ファイル名を取得
         filename = File.basename(image_path)
 
-        # 画像を保存するためにfilenameで設定したファイル名でバイナリファイルを作成
+        # filenameで設定したファイル名で画像のバイナリファイルを作成
         open("./tmp/#{filename}", 'w+b') do |output|
           URI.open(image_path) do |data|
-            # urlから取得した画像データをバイナリで流し込んでいく
             output.puts(data.read)
 
             # 作成したバイナリファイルを配列に格納
