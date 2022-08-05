@@ -1,6 +1,8 @@
 class Api::V1::PostsController < ApplicationController
   include Rails.application.routes.url_helpers #url_forを利用するために、rails_helperをincludeする
   require 'rspotify'
+  require 'open-uri'
+
   RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
 
   def index
@@ -47,19 +49,40 @@ class Api::V1::PostsController < ApplicationController
 
   def create
     if api_v1_user_signed_in?
-      # 一意の画像パス生成のためuidを生成
-      uuid = SecureRandom.hex(8)
+      # 一時保存した画像を格納する空の配列を生成
+      tmp_images = []
 
-      # 9枚のジャケットイメージを3×3のタイルに加工し、tmpディレクトリに一時保存
+      # heroku環境上では、MiniMagickを使用して画像加工するためにURLを直接開くと
+      # "attempt to perform an operation not allowed by the security policy `HTTPS'"のエラーが発生するため、
+      # 画像を一時的に保存する必要がある
+      params[:image_paths].each do |image_path|
+
+        # ファイル名を取得
+        filename = File.basename(image_path)
+
+        # filenameで設定したファイル名で画像のバイナリファイルを作成
+        open("./tmp/#{filename}", 'w+b') do |output|
+          URI.open(image_path) do |data|
+            output.puts(data.read)
+
+            # 作成したバイナリファイルを配列に格納
+            tmp_images << output.path
+          end
+        end
+      end
+
+      # 一意の値をtmp画像パスおよびpostのuuidに使用する
+      uuid = SecureRandom.hex(8)
+      # 9枚のジャケットイメージを3×3のタイルに加工し、tmp_imagesフォルダに一時保存
       MiniMagick::Tool::Montage.new do |montage|
-        params[:image_paths].each { |image| montage << image }
+        tmp_images.each { |image| montage << image }
         montage.geometry "640x640+0+0"
         montage.tile "3x3"
-        montage << "tmp/images/#{uuid}.jpg"
+        montage << "./tmp/#{uuid}.jpg"
       end
 
       # tmpディレクト内の画像パスの取得
-      image_path = "tmp/images/#{uuid}.jpg"
+      image_path = "./tmp/#{uuid}.jpg"
 
       # postインスタンスを生成
       tmp = Post.new(
@@ -73,8 +96,12 @@ class Api::V1::PostsController < ApplicationController
                               filename: File.basename(image_path),
                               content_type: 'image/jpg')
 
-      # tmpディレクトリ内の画像を削除
+      # S3保存用に一時保存した画像を削除
       File.delete(image_path)
+      # tmp_imagesディレクト内の画像を削除
+      tmp_images.each do |image|
+        File.delete(image)
+      end
 
       # issue:imageが保存されているか確認する処理を追加
 

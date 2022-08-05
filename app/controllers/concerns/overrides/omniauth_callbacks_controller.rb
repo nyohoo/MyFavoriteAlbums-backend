@@ -23,7 +23,7 @@ module Overrides
         user.assign_attributes({
           nickname: auth_hash['info']['nickname'],
           name: auth_hash['info']['name'],
-          image: auth_hash['info']['image'],
+          image: auth_hash['info']['image'].gsub(/_normal.jpg/, ".jpg"),
           email: auth_hash['info']['email']
         })
       else
