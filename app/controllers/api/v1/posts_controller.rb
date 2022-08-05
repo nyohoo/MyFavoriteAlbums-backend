@@ -32,6 +32,7 @@ class Api::V1::PostsController < ApplicationController
 
     # postに紐づくalbumを取得
     album_ids = post.albums.pluck(:album_id)
+    # Album.findに配列でidを渡すと一気に取得可能
     albums = RSpotify::Album.find(album_ids)
 
     # リリースデータを年のみのフォーマットに整える
@@ -44,7 +45,7 @@ class Api::V1::PostsController < ApplicationController
       end
     end
 
-    render json: { user: post.user, albums: albums, hash_tag: post.hash_tag, dates: dates }
+    render json: { user: post.user, albums: albums, hash_tag: post.hash_tag, dates: dates, post_uuid: post.uuid }
   end
 
   def create
