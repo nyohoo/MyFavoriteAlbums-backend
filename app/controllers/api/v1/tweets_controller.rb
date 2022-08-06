@@ -12,18 +12,7 @@ class Api::V1::TweetsController < ApplicationController
       config.access_token_secret = access_token_secret(post)
     end
 
-    # S3のURLを取得
-    
-    post_image = post.image.service_url
-    
-    # ツイートの本文を作成
-    # text = "テストです！！" +  "\n" + "#{post.hash_tag}" + "\n" +  "\n" + "\n" + "詳細はこちら" + "\n" "#{params[:url]}"
-    text = "テストですうううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううううう" + "#{params[:url]}"
-
-    # ツイッターAPIのリファレンスに従い、画像のチャンクを作成
-    # base_file = Base64.decode64(post_image)
-
-    # S3のURLでは長すぎるので、postのuuidを使って短くして
+    post_image = post.image_blob.service_url
     # バイナリ形式で一時保存してから投稿する
     open("./tmp/#{post.uuid}", 'w+b') do |output|
       URI.open(post_image) do |data|
@@ -32,6 +21,31 @@ class Api::V1::TweetsController < ApplicationController
         post_image = output.path
       end
     end
+    
+    # JPG形式に保存する処理、不要かも？
+    # file = File.open("./tmp/#{post.uuid}.jpg", 'wb') do |f|
+    #   f.write(post_image)
+    # end
+
+    # file = URI.open("./tmp/#{post.uuid}.jpg", 'wb') do |f|
+    #   f.write(post_image)
+    # end
+
+    # ツイートの本文を作成
+    text = "#{params[:text]}" +  "\n" + "#{post.hash_tag}" + "\n" +  "\n" + "\n" + "詳細はこちら" + "\n" "#{params[:url]}"
+
+    # Twitterの推奨する画像アップロード方法ではうまくいかないので保留
+    # バイナリ形式でダウンロード
+    # post_image = post.image_blob.download
+    # base_file = Base64.decode64(post.image.service_url)
+    # file = post_image
+    # init_request = Twitter::REST::Request.new(client, :post, "https://upload.twitter.com/1.1/media/upload.json", command: 'INIT', total_bytes: base_file.size, media_type: "image/jpeg").perform
+    # media_id = init_request[:media_id]
+    # Twitter::REST::Request.new(client, :post, "https://upload.twitter.com/1.1/media/upload.json", command: 'APPEND', media_id: media_id, media: file, segment_index: 0).perform
+    # Twitter::REST::Request.new(client, :post, "https://upload.twitter.com/1.1/media/upload.json", command: 'STATUS', media_id: media_id, media: file).perform
+    # Twitter::REST::Request.new(client, :post, "https://upload.twitter.com/1.1/media/upload.json", command: 'FINALIZE',media_id: media_id).perform
+    # テキスト・URL・画像を投稿
+    # Twitter::REST::Request.new(client, :post, "https://api.twitter.com/1.1/statuses/update.json", status: params[:text], attachment_url: params[:url], media_ids: media_id).perform
 
     if client.update_with_media(text, post_image)
       render json: { message: "ツイートが完了しました" }
@@ -44,24 +58,6 @@ class Api::V1::TweetsController < ApplicationController
       }
       render json: { error: error_json }, status: :unprocessable_entity
     end
-
-    # file = post_image
-    # S3の画像をjpg形式に変換してから投稿する
-
-    # init_request = Twitter::REST::Request.new(client, :post, "https://upload.twitter.com/1.1/media/upload.json", command: 'INIT', total_bytes: base_file.size).perform
-    # media_id = init_request[:media_id]
-
-    # Twitter::REST::Request.new(client, :post, "https://upload.twitter.com/1.1/media/upload.json", command: 'APPEND', media_id: media_id, media: file, segment_index: 0).perform
-
-    # Twitter::REST::Request.new(client, :post, "https://upload.twitter.com/1.1/media/upload.json", command: 'STATUS', media_id: media_id, media: file).perform
-
-    # Twitter::REST::Request.new(client, :post, "https://upload.twitter.com/1.1/media/upload.json", command: 'FINALIZE',media_id: media_id).perform
-
-    # # テキスト・URL・画像を投稿
-    # Twitter::REST::Request.new(client, :post, "https://api.twitter.com/1.1/statuses/update.json", status: params[:text], attachment_url: params[:url], media_ids: media_id).perform
-
-
-    
   end
 
   private
