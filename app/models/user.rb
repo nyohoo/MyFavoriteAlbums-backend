@@ -16,7 +16,9 @@ class User < ActiveRecord::Base
 
   # 返すユーザー情報のフィルタ
   def token_validation_response
-    as_json(only: [:id, :uid, :name, :nickname, :image])
+    self.as_json(except: [
+      :access_token,:access_token_secret, :created_at, :updated_at, :allow_password_change, :is_admin, :email
+    ])
   end
 
   # access_tokenとaccess_token_secretを暗号化して保存する
