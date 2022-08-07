@@ -47,7 +47,7 @@ class Api::V1::TweetsController < ApplicationController
 
 
     # ツイートの本文を作成
-    text = "#{params[:text]}" + "#{params[:url]}"
+    text = "#{params[:text]}" + "\n" + "#{params[:url]}"
 
     # ツイートを投稿
     if client.update_with_media(text, post_image)
