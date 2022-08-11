@@ -62,3 +62,6 @@ gem 'aws-sdk-s3'
 
 # pagenation
 gem 'kaminari'
+
+# Twitter
+gem 'twitter'

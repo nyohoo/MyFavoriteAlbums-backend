@@ -8,7 +8,25 @@ class User < ActiveRecord::Base
          :recoverable, :rememberable, :validatable, :omniauthable
   include DeviseTokenAuth::Concerns::User
 
-  has_many :posts, dependent: :destroy
+  has_many :posts, -> { order(created_at: :desc) }, dependent: :destroy
   has_many :likes, dependent: :destroy
   has_many :like_posts, through: :likes, source: :post
+
+  before_save :encrypt_access_token
+
+  # 返すユーザー情報のフィルタ
+  def token_validation_response
+    self.as_json(except: [
+      :access_token,:access_token_secret, :created_at, :updated_at, :allow_password_change, :is_admin, :email
+    ])
+  end
+
+  # access_tokenとaccess_token_secretを暗号化して保存する
+  def encrypt_access_token
+    key_len = ActiveSupport::MessageEncryptor.key_len
+    secret = Rails.application.key_generator.generate_key('salt', key_len)
+    crypt = ActiveSupport::MessageEncryptor.new(secret)
+    self.access_token = crypt.encrypt_and_sign(access_token)
+    self.access_token_secret = crypt.encrypt_and_sign(access_token_secret)
+  end
 end

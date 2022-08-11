@@ -12,9 +12,12 @@ Rails.application.routes.draw do
       get 'posts/lists', param: :page, to: 'posts#index'
       get 'posts/:uuid', param: :uuid, to: 'posts#show'
       post 'posts', to: 'posts#create'
+      delete 'posts', param: :uuid, to: 'posts#destroy'
 
       get '/search', to: 'songs#search'
       get '/add_search', to: 'songs#add_search'
+
+      post '/tweets', to: 'tweets#create'
     end
   end
 end

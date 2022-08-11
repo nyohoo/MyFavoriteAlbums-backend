@@ -24,7 +24,9 @@ module Overrides
           nickname: auth_hash['info']['nickname'],
           name: auth_hash['info']['name'],
           image: auth_hash['info']['image'].gsub(/_normal.jpg/, ".jpg"),
-          email: auth_hash['info']['email']
+          email: auth_hash['info']['email'],
+          access_token: auth_hash['credentials']['token'],
+          access_token_secret: auth_hash['credentials']['secret']
         })
       else
         super

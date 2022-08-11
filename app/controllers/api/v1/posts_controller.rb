@@ -1,4 +1,5 @@
 class Api::V1::PostsController < ApplicationController
+  before_action :api_v1_user_signed_in?, only: [:create, :destroy]
   include Rails.application.routes.url_helpers #url_forを利用するために、rails_helperをincludeする
   require 'rspotify'
   require 'open-uri'
@@ -32,6 +33,7 @@ class Api::V1::PostsController < ApplicationController
 
     # postに紐づくalbumを取得
     album_ids = post.albums.pluck(:album_id)
+    # Album.findに配列でidを渡すと一気に取得可能
     albums = RSpotify::Album.find(album_ids)
 
     # リリースデータを年のみのフォーマットに整える
@@ -43,82 +45,86 @@ class Api::V1::PostsController < ApplicationController
         dates << ""
       end
     end
-
-    render json: { user: post.user, albums: albums, hash_tag: post.hash_tag, dates: dates }
+    render json: { user: post.user, albums: albums, hash_tag: post.hash_tag, dates: dates, post_uuid: post.uuid }
   end
 
   def create
-    if api_v1_user_signed_in?
-      # 一時保存した画像を格納する空の配列を生成
-      tmp_images = []
+    # 一時保存した画像を格納する空の配列を生成
+    tmp_images = []
 
-      # heroku環境上では、MiniMagickを使用して画像加工するためにURLを直接開くと
-      # "attempt to perform an operation not allowed by the security policy `HTTPS'"のエラーが発生するため、
-      # 画像を一時的に保存する必要がある
-      params[:image_paths].each do |image_path|
-
-        # ファイル名を取得
-        filename = File.basename(image_path)
-
-        # filenameで設定したファイル名で画像のバイナリファイルを作成
-        open("./tmp/#{filename}", 'w+b') do |output|
-          URI.open(image_path) do |data|
-            output.puts(data.read)
-
-            # 作成したバイナリファイルを配列に格納
-            tmp_images << output.path
-          end
+    # heroku環境上では、MiniMagickを使用して画像加工するためにURLを直接開くと
+    # "attempt to perform an operation not allowed by the security policy `HTTPS'"のエラーが発生するため、
+    # 画像を一時的に保存する必要がある
+    params[:image_paths].each do |image_path|
+    
+      # ファイル名を取得
+      filename = File.basename(image_path)
+    
+      # filenameで設定したファイル名で画像のバイナリファイルを作成
+      open("./tmp/#{filename}", 'w+b') do |output|
+        URI.open(image_path) do |data|
+          output.puts(data.read)
+        
+          # 作成したバイナリファイルを配列に格納
+          tmp_images << output.path
         end
       end
-
-      # 一意の値をtmp画像パスおよびpostのuuidに使用する
-      uuid = SecureRandom.hex(8)
-      # 9枚のジャケットイメージを3×3のタイルに加工し、tmp_imagesフォルダに一時保存
-      MiniMagick::Tool::Montage.new do |montage|
-        tmp_images.each { |image| montage << image }
-        montage.geometry "640x640+0+0"
-        montage.tile "3x3"
-        montage << "./tmp/#{uuid}.jpg"
+    end
+  
+    # 一意の値をtmp画像パスおよびpostのuuidに使用する
+    uuid = SecureRandom.hex(8)
+    # 9枚のジャケットイメージを3×3のタイルに加工し、tmp_imagesフォルダに一時保存
+    MiniMagick::Tool::Montage.new do |montage|
+      tmp_images.each { |image| montage << image }
+      montage.geometry "640x640+0+0"
+      montage.tile "3x3"
+      montage << "./tmp/#{uuid}.jpg"
+    end
+  
+    # tmpディレクト内の画像パスの取得
+    image_path = "./tmp/#{uuid}.jpg"
+  
+    # postインスタンスを生成
+    tmp = Post.new(
+      user_id: current_api_v1_user.id,
+      hash_tag: params[:hash_tag],
+      uuid: uuid
+    )
+  
+    # S3に画像を保存
+    post = tmp.image.attach(io: File.open(image_path),
+                            filename: File.basename(image_path),
+                            content_type: 'image/jpg')
+  
+    # S3保存用に一時保存した画像を削除
+    File.delete(image_path)
+    # tmp_imagesディレクト内の画像を削除
+    tmp_images.each do |image|
+      File.delete(image)
+    end
+  
+    # issue:imageが保存されているか確認する処理を追加
+  
+    if post.record.save
+      # postに紐づくalbumsデータを作成
+      params[:album_ids].each do |album_id|
+        Album.create(
+          album_id: album_id,
+          post_id: post.record.id
+        )
       end
-
-      # tmpディレクト内の画像パスの取得
-      image_path = "./tmp/#{uuid}.jpg"
-
-      # postインスタンスを生成
-      tmp = Post.new(
-        user_id: current_api_v1_user.id,
-        hash_tag: params[:hash_tag],
-        uuid: uuid
-      )
-
-      # S3に画像を保存
-      post = tmp.image.attach(io: File.open(image_path),
-                              filename: File.basename(image_path),
-                              content_type: 'image/jpg')
-
-      # S3保存用に一時保存した画像を削除
-      File.delete(image_path)
-      # tmp_imagesディレクト内の画像を削除
-      tmp_images.each do |image|
-        File.delete(image)
-      end
-
-      # issue:imageが保存されているか確認する処理を追加
-
-      if post.record.save
-        # postに紐づくalbumsデータを作成
-        params[:album_ids].each do |album_id|
-          Album.create(
-            album_id: album_id,
-            post_id: post.record.id
-          )
-        end
-        render json: post.record.uuid
-      else
-        render json: { error: post.errors.full_messages }, status: :unprocessable_entity
-      end
+      render json: post.record.uuid
     else
-      render json: { error: "ログインしてください" }, status: :unauthorized
+      render json: { error: post.record.errors.full_messages }
+    end
+  end
+
+  def destroy
+    post = Post.find_by(uuid: params[:uuid])
+    if post.destroy
+      render json: { message: "削除しました" }
+    else
+      render json: { error: post.errors.full_messages }
     end
   end
 end
