@@ -9,10 +9,15 @@ Rails.application.routes.draw do
       }
       resources :users, param: :uid, only: %i[show]
 
+      get 'users/:uid/posts', param: :uid, to: 'users#show_users_post'
+      get 'users/:uid/likes', param: :uid, to: 'users#show_users_like'
+
       get 'posts/lists', param: :page, to: 'posts#index'
       get 'posts/:uuid', param: :uuid, to: 'posts#show'
       post 'posts', to: 'posts#create'
       delete 'posts', param: :uuid, to: 'posts#destroy'
+
+      resources :likes, only: %i[create destroy]
 
       get '/search', to: 'songs#search'
       get '/add_search', to: 'songs#add_search'
