@@ -45,7 +45,7 @@ class Api::V1::PostsController < ApplicationController
         dates << ""
       end
     end
-    render json: { user: post.user, albums: albums, hash_tag: post.hash_tag, dates: dates, post_uuid: post.uuid }
+    render json: { user: post.user, albums: albums, hash_tag: post.hash_tag, dates: dates, id: post.id, post_uuid: post.uuid, likes: post.likes }
   end
 
   def create
