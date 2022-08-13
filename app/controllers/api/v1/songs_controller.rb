@@ -1,6 +1,5 @@
 class Api::V1::SongsController < ApplicationController
   require 'rspotify'
-  require 'mini_magick'
   RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
 
   def search
@@ -9,11 +8,12 @@ class Api::V1::SongsController < ApplicationController
   end
 
   def add_search
-    results = RSpotify::Album.search(params[:query], offset: params[:count],limit: 48, market: 'JP')
+    # 無限スクロールのため、params[:count]をoffsetにセットして検索している
+    results = RSpotify::Album.search(params[:query], offset: params[:count], limit: 48, market: 'JP')
     if results.length > 0
       render json: results
     else
-      render json: no_result
+      render json: { no_result: "No results :(" }
     end
   end
 end
