@@ -1,14 +1,16 @@
 class Api::V1::UsersController < ApplicationController
-  def show_users_post
-    # kaminariで無限スクロール。userのpostsを取得。
-    user = User.includes(:posts).find_by(uid: params[:uid])
-    posts = user.posts.order("created_at DESC").page(params[:page]).per(5)
-    pagenation = resources_with_pagination(posts)
+  def show_user
+    user = User.find_by(uid: params[:uid])
+    render json: { user: user }
+  end
 
+  def show_users_post
+    # params[:uid]を元にuserの情報を取得し、userに紐づくpostsをcreated_atで降順に並び替えて5件ずつ取得
+    posts = User.find_by(uid: params[:uid]).posts.order("created_at DESC").page(params[:page]).per(5)
     results = []
 
     # userに紐づくpostをフロントエンドで使用する形式に変換
-    user.posts.each do |post|
+    posts.each do |post|
       # post.created_atを年月日のフォーマットに変更
       created_at = post.created_at.strftime("%Y年%m月%d日")
       results << { post_uuid: post.uuid,
@@ -17,26 +19,24 @@ class Api::V1::UsersController < ApplicationController
                   image_path: post.image.service_url }
     end
 
-    render json: { user: user, posts: results, kaminari: pagenation }
+    render json: { posts: results }
   end
 
   def show_users_like
-    user = User.includes(:posts, :likes).find_by(uid: params[:uid])
-    posts = user.posts.order("created_at DESC").page(params[:page]).per(5)
-    pagenation = resources_with_pagination(posts)
-
+    # kaminariで無限スクロール。userのlikesを取得。nullの場合は空の配列を返す。
+    like_posts = User.find_by(uid: params[:uid]).likes.order("created_at DESC").page(params[:page]).per(5)
     results = []
 
     # userに紐づくlike_postsをフロントエンドで使用する形式に変換
-    user.like_posts.each do |post|
-      created_at = post.created_at.strftime("%Y年%m月%d日")
-      results << { user: post.user, 
-                  post_uuid: post.uuid,
+    like_posts.each do |like_post|
+      created_at = like_post.post.created_at.strftime("%Y年%m月%d日")
+      results << { user: like_post.post.user, 
+                  post_uuid: like_post.post.uuid,
                   created_at: created_at, 
-                  hash_tag: post.hash_tag, 
-                  image_path: post.image.service_url }
+                  hash_tag: like_post.post.hash_tag, 
+                  image_path: like_post.post.image.service_url }
     end
 
-    render json: { user: user, likes: results, kaminari: pagenation }
+    render json: { likes: results }
   end
 end
