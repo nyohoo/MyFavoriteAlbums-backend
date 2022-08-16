@@ -31,7 +31,6 @@ class Api::V1::PostsController < ApplicationController
   def show
     # uuidを元にpostを取得
     post = Post.find_by(uuid: params[:uuid])
-
     # postに紐づくalbumを取得
     album_ids = post.albums.pluck(:album_id)
     # Album.findに配列でidを渡すと一気に取得可能
@@ -84,7 +83,9 @@ class Api::V1::PostsController < ApplicationController
   
     # tmpディレクト内の画像パスの取得
     image_path = "./tmp/#{uuid}.jpg"
-  
+    # params[:hash_tag]が空の場合は、ハッシュタグを生成する
+    params[:hash_tag] = '#私を構成する9枚' if params[:hash_tag].empty?
+
     # postインスタンスを生成
     tmp = Post.new(
       user_id: current_api_v1_user.id,
