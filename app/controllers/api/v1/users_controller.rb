@@ -1,4 +1,5 @@
 class Api::V1::UsersController < ApplicationController
+  include Rails.application.routes.url_helpers #url_forを利用するために、rails_helperをincludeする
   def show_user
     user = User.find_by(uid: params[:uid])
     render json: { user: user }
