@@ -32,8 +32,6 @@ class Api::V1::PostsController < ApplicationController
     # uuidを元にpostを取得
     post = Post.find_by(uuid: params[:uuid])
 
-    binding.pry
-
     # postに紐づくalbumを取得
     album_ids = post.albums.pluck(:album_id)
     # Album.findに配列でidを渡すと一気に取得可能

@@ -1,4 +1,5 @@
 class Api::V1::UsersController < ApplicationController
+  include Rails.application.routes.url_helpers #url_forを利用するために、rails_helperをincludeする
   def show_user
     user = User.find_by(uid: params[:uid])
     render json: { user: user }
@@ -13,10 +14,11 @@ class Api::V1::UsersController < ApplicationController
     posts.each do |post|
       # post.created_atを年月日のフォーマットに変更
       created_at = post.created_at.strftime("%Y年%m月%d日")
+      image_path = url_for(post.image)
       results << { post_uuid: post.uuid,
                   created_at: created_at,
                   hash_tag: post.hash_tag,
-                  image_path: post.image.service_url }
+                  image_path: image_path }
     end
 
     render json: { posts: results }
@@ -30,11 +32,12 @@ class Api::V1::UsersController < ApplicationController
     # userに紐づくlike_postsをフロントエンドで使用する形式に変換
     like_posts.each do |like_post|
       created_at = like_post.post.created_at.strftime("%Y年%m月%d日")
+      image_path = url_for(like_post.post.image)
       results << { user: like_post.post.user, 
                   post_uuid: like_post.post.uuid,
                   created_at: created_at, 
                   hash_tag: like_post.post.hash_tag, 
-                  image_path: like_post.post.image.service_url }
+                  image_path: image_path }
     end
 
     render json: { likes: results }
