@@ -15,11 +15,12 @@ class Api::V1::PostsController < ApplicationController
     posts.each do |post|
       # post.created_atを年月日のフォーマットに変更
       created_at = post.created_at.strftime("%Y年%m月%d日")
+      image_path = url_for(post.image)
       # フロントエンドで使用するデータを生成
       results << { post_uuid: post.uuid,
                   created_at: created_at,
                   hash_tag: post.hash_tag, 
-                  image_path: post.image.service_url, 
+                  image_path: image_path, 
                   user: post.user }
     end
     
@@ -30,6 +31,8 @@ class Api::V1::PostsController < ApplicationController
   def show
     # uuidを元にpostを取得
     post = Post.find_by(uuid: params[:uuid])
+
+    binding.pry
 
     # postに紐づくalbumを取得
     album_ids = post.albums.pluck(:album_id)
