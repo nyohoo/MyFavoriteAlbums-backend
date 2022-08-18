@@ -29,6 +29,13 @@ class Api::V1::PostsController < ApplicationController
   end
 
   def show
+    # ログイン中の場合は、ログイン中のユーザーのブックマーク情報を取得する
+    if api_v1_user_signed_in?
+      current_user_bookmarks = current_api_v1_user.bookmarks.select("spotify_album_id").map(&:spotify_album_id)
+    else
+      bookamrks = nil
+    end
+
     # uuidを元にpostを取得
     post = Post.find_by(uuid: params[:uuid])
     # postに紐づくalbumを取得
@@ -45,7 +52,15 @@ class Api::V1::PostsController < ApplicationController
         dates << ""
       end
     end
-    render json: { user: post.user, albums: albums, hash_tag: post.hash_tag, dates: dates, id: post.id, post_uuid: post.uuid, likes: post.likes }
+
+    render json: { user: post.user,
+                  albums: albums,
+                  hash_tag: post.hash_tag,
+                  dates: dates,
+                  id: post.id,
+                  post_uuid: post.uuid,
+                  likes: post.likes,
+                  currentUserBookmarks: current_user_bookmarks }
   end
 
   def create
