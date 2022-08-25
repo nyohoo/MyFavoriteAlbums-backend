@@ -19,6 +19,7 @@ Rails.application.routes.draw do
       delete 'posts', param: :uuid, to: 'posts#destroy'
 
       resources :likes, only: %i[create destroy]
+      get 'likes/:uuid', param: :uuid, to: 'likes#current_user_likes'
       resources :bookmarks, only: %i[create destroy]
       get 'bookmarks/:uid', param: :uid, to: 'bookmarks#current_user_bookmarks'
 
