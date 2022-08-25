@@ -1,5 +1,10 @@
 class Api::V1::LikesController < ApplicationController
   before_action :authenticate_api_v1_user!
+  def current_user_likes
+    likes = current_api_v1_user.likes.select("post_id").map(&:post_id)
+    render json: { likes: likes }
+  end
+
   def create
     # すでにいいねしているかを確認
     if current_api_v1_user.likes.find_by(post_id: params[:id]).nil?
