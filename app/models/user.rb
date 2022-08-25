@@ -9,9 +9,11 @@ class User < ActiveRecord::Base
   include DeviseTokenAuth::Concerns::User
 
   has_many :posts, -> { order(created_at: :desc) }, dependent: :destroy
-  has_many :likes, dependent: :destroy
-  has_many :like_posts, through: :likes, source: :post
+  has_many :likes, -> { order(created_at: :desc) }, dependent: :destroy
 
+  has_many :bookmarks, -> { order(created_at: :desc) }, dependent: :destroy
+
+  # DB保存前に暗号化
   before_save :encrypt_access_token
 
   # 返すユーザー情報のフィルタ

@@ -7,7 +7,7 @@ class Api::V1::PostsController < ApplicationController
   RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
 
   def index
-    posts = Post.order("created_at DESC").page(params[:page]).per(5)
+    posts = Post.includes(:likes).order("created_at DESC").page(params[:page]).per(5)
     #pagenation_controllerにて定義したメソッドを利用し、ページネーション情報を取得
     pagenation = resources_with_pagination(posts)
 
@@ -15,22 +15,31 @@ class Api::V1::PostsController < ApplicationController
     posts.each do |post|
       # post.created_atを年月日のフォーマットに変更
       created_at = post.created_at.strftime("%Y年%m月%d日")
+      image_path = url_for(post.image)
       # フロントエンドで使用するデータを生成
-      results << { post_uuid: post.uuid,
+      results << { id: post.id,
+                  post_uuid: post.uuid,
                   created_at: created_at,
                   hash_tag: post.hash_tag, 
-                  image_path: post.image.service_url, 
-                  user: post.user }
+                  image_path: image_path, 
+                  user: post.user,
+                  likes: post.likes,
+                 }
     end
-    
     response = { posts: results, kaminari: pagenation } 
     render json: response
   end
 
   def show
+    # ログイン中の場合は、ログイン中のユーザーのブックマーク情報を取得する
+    if api_v1_user_signed_in?
+      current_user_bookmarks = current_api_v1_user.bookmarks.select("spotify_album_id").map(&:spotify_album_id)
+    else
+      bookamrks = nil
+    end
+
     # uuidを元にpostを取得
     post = Post.find_by(uuid: params[:uuid])
-
     # postに紐づくalbumを取得
     album_ids = post.albums.pluck(:album_id)
     # Album.findに配列でidを渡すと一気に取得可能
@@ -45,7 +54,15 @@ class Api::V1::PostsController < ApplicationController
         dates << ""
       end
     end
-    render json: { user: post.user, albums: albums, hash_tag: post.hash_tag, dates: dates, id: post.id, post_uuid: post.uuid, likes: post.likes }
+
+    render json: { user: post.user,
+                  albums: albums,
+                  hash_tag: post.hash_tag,
+                  dates: dates,
+                  id: post.id,
+                  post_uuid: post.uuid,
+                  likes: post.likes,
+                  currentUserBookmarks: current_user_bookmarks }
   end
 
   def create
@@ -83,7 +100,9 @@ class Api::V1::PostsController < ApplicationController
   
     # tmpディレクト内の画像パスの取得
     image_path = "./tmp/#{uuid}.jpg"
-  
+    # params[:hash_tag]が空の場合は、ハッシュタグを生成する
+    params[:hash_tag] = '#私を構成する9枚' if params[:hash_tag].empty?
+
     # postインスタンスを生成
     tmp = Post.new(
       user_id: current_api_v1_user.id,
