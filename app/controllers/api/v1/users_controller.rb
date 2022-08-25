@@ -36,7 +36,8 @@ class Api::V1::UsersController < ApplicationController
     like_posts.each do |like_post|
       created_at = like_post.post.created_at.strftime("%Y年%m月%d日")
       image_path = url_for(like_post.post.image)
-      results << { user: like_post.post.user, 
+      results << { user: like_post.post.user,
+                  post_id: like_post.post.id,
                   post_uuid: like_post.post.uuid,
                   created_at: created_at, 
                   hash_tag: like_post.post.hash_tag, 
