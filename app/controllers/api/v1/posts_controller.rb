@@ -7,7 +7,7 @@ class Api::V1::PostsController < ApplicationController
   RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
 
   def index
-    posts = Post.order("created_at DESC").page(params[:page]).per(5)
+    posts = Post.includes(:likes).order("created_at DESC").page(params[:page]).per(5)
     #pagenation_controllerにて定義したメソッドを利用し、ページネーション情報を取得
     pagenation = resources_with_pagination(posts)
 
@@ -17,13 +17,15 @@ class Api::V1::PostsController < ApplicationController
       created_at = post.created_at.strftime("%Y年%m月%d日")
       image_path = url_for(post.image)
       # フロントエンドで使用するデータを生成
-      results << { post_uuid: post.uuid,
+      results << { id: post.id,
+                  post_uuid: post.uuid,
                   created_at: created_at,
                   hash_tag: post.hash_tag, 
                   image_path: image_path, 
-                  user: post.user }
+                  user: post.user,
+                  likes: post.likes,
+                 }
     end
-    
     response = { posts: results, kaminari: pagenation } 
     render json: response
   end
