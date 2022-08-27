@@ -10,21 +10,8 @@ class Api::V1::UsersController < ApplicationController
 
   def show_user_posts
     # params[:uid]を元にuserの情報を取得し、userに紐づくpostsをcreated_atで降順に並び替えて5件ずつ取得
-    posts = User.find_by(uid: params[:uid]).posts.order("created_at DESC").page(params[:page]).per(5)
-    results = []
-
-    # userに紐づくpostをフロントエンドで使用する形式に変換
-    posts.each do |post|
-      # post.created_atを年月日のフォーマットに変更
-      created_at = post.created_at.strftime("%Y年%m月%d日")
-      image_path = url_for(post.image)
-      results << { post_uuid: post.uuid,
-                  created_at: created_at,
-                  hash_tag: post.hash_tag,
-                  image_path: image_path }
-    end
-
-    render json: { posts: results }
+    user_posts = User.find_by(uid: params[:uid]).posts.order("created_at DESC").page(params[:page]).per(5)
+    render json: user_posts, each_serializer: UserSerializer
   end
 
   def show_user_likes
@@ -56,6 +43,7 @@ class Api::V1::UsersController < ApplicationController
 
     # kaminariで無限スクロール。userのlikesを取得。nullの場合は空の配列を返す。
     bookmarks = User.find_by(uid: params[:uid]).bookmarks.select("spotify_album_id").page(params[:page]).per(10).map(&:spotify_album_id)
+
     if bookmarks.present?
       results = []
 
