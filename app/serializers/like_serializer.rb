@@ -12,7 +12,7 @@ class LikeSerializer < ActiveModel::Serializer
   end
 
   def image_path
-    url_for(object.post.image)
+    url_for(object.post.images[0]['url'])
   end
 
   def created_at

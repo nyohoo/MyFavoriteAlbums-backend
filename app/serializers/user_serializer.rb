@@ -15,7 +15,7 @@ class UserSerializer < ActiveModel::Serializer
 
   # post.imageをurl_forで取得してattributesに追加
   def image_path
-    url_for(object.image)
+    url_for(object.images[0]['url'])
   end
 
   # post.created_atを年月日のフォーマットに整えてattributesに追加
