@@ -65,3 +65,6 @@ gem 'kaminari'
 
 # Twitter
 gem 'twitter'
+
+# シリアライザー
+gem 'active_model_serializers'
