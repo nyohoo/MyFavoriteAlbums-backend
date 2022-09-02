@@ -35,7 +35,7 @@ class Api::V1::PostsController < ApplicationController
     if api_v1_user_signed_in?
       current_user_bookmarks = current_api_v1_user.bookmarks.select("spotify_album_id").map(&:spotify_album_id)
     else
-      bookamrks = nil
+      current_user_bookmarks = nil
     end
 
     # uuidを元にpostを取得
