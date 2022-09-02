@@ -53,7 +53,7 @@ class Api::V1::UsersController < ApplicationController
                     albumImagePath: album.images[0]['url'],
                     albumReleaseDate: date }
       end
-      render json: results, current_user_bookmarks: current_user_bookmarks
+      render json: results, currentUserBookmarks: current_user_bookmarks
 
     else 
       render json: { bookmarks: [] }
