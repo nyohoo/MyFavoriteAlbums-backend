@@ -7,6 +7,7 @@ class BookmarkSerializer < ActiveModel::Serializer
   attributes :album_artist
   attributes :album_image_path
   attributes :album_release_date
+  attributes :spotify_album_id
   
   def album_id
     object.id

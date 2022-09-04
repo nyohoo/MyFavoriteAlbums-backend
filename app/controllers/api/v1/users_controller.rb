@@ -21,13 +21,6 @@ class Api::V1::UsersController < ApplicationController
   end
 
   def show_user_bookmarks
-    # ログイン中の場合は、ログイン中のユーザーのブックマーク情報を取得する
-    if api_v1_user_signed_in?
-      current_user_bookmarks = current_api_v1_user.bookmarks.select("spotify_album_id").map(&:spotify_album_id)
-    else
-      current_user_bookmarks = nil
-    end
-
     # kaminariで無限スクロール。userのbookmarksを取得。nullの場合は空の配列を返す。
     bookmark_album_ids = User.find_by(uid: params[:uid]).bookmarks.select("spotify_album_id").page(params[:page]).per(10).map(&:spotify_album_id)
 
@@ -53,10 +46,10 @@ class Api::V1::UsersController < ApplicationController
                     albumImagePath: album.images[0]['url'],
                     albumReleaseDate: date }
       end
-      render json: results, current_user_bookmarks: current_user_bookmarks
+      render json: { results: results }
 
     else 
-      render json: { bookmarks: [] }
+      render json: { results: [] }
     end
   end
 end
