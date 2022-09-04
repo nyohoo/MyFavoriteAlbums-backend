@@ -46,7 +46,9 @@ class Api::V1::UsersController < ApplicationController
                     albumImagePath: album.images[0]['url'],
                     albumReleaseDate: date }
       end
+
       render json: { results: results }
+
 
     else 
       render json: { results: [] }
