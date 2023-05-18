@@ -14,6 +14,7 @@ Rails.application.routes.draw do
       get 'users/:uid/bookmarks', param: :uid, to: 'users#show_user_bookmarks'
 
       get 'posts/lists', param: :page, to: 'posts#index'
+      get 'posts/random', to: 'posts#random'
       get 'posts/:uuid', param: :uuid, to: 'posts#show'
       post 'posts', to: 'posts#create'
       delete 'posts', param: :uuid, to: 'posts#destroy'
