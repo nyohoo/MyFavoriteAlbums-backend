@@ -2,10 +2,6 @@ class Api::V1::PostsController < ApplicationController
   before_action :api_v1_user_signed_in?, only: [:create, :destroy]
   before_action :set_post, only: [:show, :destroy]
 
-  include Rails.application.routes.url_helpers #url_forを利用するために、rails_helperをincludeする
-  require 'rspotify'
-  require 'open-uri'
-
   RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
 
   def index
