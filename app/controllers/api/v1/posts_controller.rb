@@ -45,10 +45,10 @@ class Api::V1::PostsController < ApplicationController
   end
 
   def create
-    image_processor = ImageProcessor.new(params[:image_paths])
+    image_processor = ImageProcessor.new(post_params[:image_paths])
     uuid = image_processor.process_images
     image_path = "./tmp/#{uuid}.jpg"
-    params[:hash_tag] = '#私を構成する9枚' if params[:hash_tag].empty?
+    post_params[:hash_tag] = '#私を構成する9枚' if post_params[:hash_tag].empty?
 
     # postインスタンスを生成
     tmp = Post.new(
@@ -67,7 +67,7 @@ class Api::V1::PostsController < ApplicationController
 
     if post.record.save
       # postに紐づくalbumsデータを作成
-      params[:album_ids].each do |album_id|
+      post_params[:album_ids].each do |album_id|
         Album.create(
           album_id: album_id,
           post_id: post.record.id
@@ -108,6 +108,10 @@ class Api::V1::PostsController < ApplicationController
   end
 
   private
+  def post_params
+    params.permit(:hash_tag, image_paths: [], album_ids: [])
+  end
+
   def set_post
     @post = Post.find_by(uuid: params[:uuid])
   end
