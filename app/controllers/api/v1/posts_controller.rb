@@ -1,12 +1,12 @@
 class Api::V1::PostsController < ApplicationController
+  include ApplicationHelper
   before_action :api_v1_user_signed_in?, only: [:create, :destroy]
   before_action :set_post, only: [:show, :destroy]
 
   RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
 
   def index
-    posts = Post.includes(:likes).order("created_at DESC").page(params[:page]).per(5)
-    #pagenation_controllerにて定義したメソッドを利用し、ページネーション情報を取得
+    posts = paginate(Post.with_likes.newest_first, params[:page], 5)
     pagenation = resources_with_pagination(posts)
 
     results = []
