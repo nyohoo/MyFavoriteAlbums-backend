@@ -51,41 +51,9 @@ class Api::V1::PostsController < ApplicationController
   end
 
   def create
-    # 一時保存した画像を格納する空の配列を生成
-    tmp_images = []
-
-    # heroku環境上では、MiniMagickを使用して画像加工するためにURLを直接開くと
-    # "attempt to perform an operation not allowed by the security policy `HTTPS'"のエラーが発生するため、
-    # 画像を一時的に保存する必要がある
-    params[:image_paths].each do |image_path|
-    
-      # ファイル名を取得
-      filename = File.basename(image_path)
-    
-      # filenameで設定したファイル名で画像のバイナリファイルを作成
-      open("./tmp/#{filename}", 'w+b') do |output|
-        URI.open(image_path) do |data|
-          output.puts(data.read)
-        
-          # 作成したバイナリファイルを配列に格納
-          tmp_images << output.path
-        end
-      end
-    end
-  
-    # 一意の値をtmp画像パスおよびpostのuuidに使用する
-    uuid = SecureRandom.hex(8)
-    # 9枚のジャケットイメージを3×3のタイルに加工し、tmp_imagesフォルダに一時保存
-    MiniMagick::Tool::Montage.new do |montage|
-      tmp_images.each { |image| montage << image }
-      montage.geometry "640x640+0+0"
-      montage.tile "3x3"
-      montage << "./tmp/#{uuid}.jpg"
-    end
-  
-    # tmpディレクト内の画像パスの取得
+    image_processor = ImageProcessor.new(params[:image_paths])
+    uuid = image_processor.process_images
     image_path = "./tmp/#{uuid}.jpg"
-    # params[:hash_tag]が空の場合は、ハッシュタグを生成する
     params[:hash_tag] = '#私を構成する9枚' if params[:hash_tag].empty?
 
     # postインスタンスを生成
@@ -94,21 +62,15 @@ class Api::V1::PostsController < ApplicationController
       hash_tag: params[:hash_tag],
       uuid: uuid
     )
-  
+
     # S3に画像を保存
     post = tmp.image.attach(io: File.open(image_path),
                             filename: File.basename(image_path),
                             content_type: 'image/jpg')
-  
+
     # S3保存用に一時保存した画像を削除
     File.delete(image_path)
-    # tmp_imagesディレクト内の画像を削除
-    tmp_images.each do |image|
-      File.delete(image)
-    end
-  
-    # issue:imageが保存されているか確認する処理を追加
-  
+
     if post.record.save
       # postに紐づくalbumsデータを作成
       params[:album_ids].each do |album_id|
