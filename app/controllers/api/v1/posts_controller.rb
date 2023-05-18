@@ -33,40 +33,6 @@ class Api::V1::PostsController < ApplicationController
   end
 
   def show
-    # # ログイン中の場合は、ログイン中のユーザーのブックマーク情報を取得する
-    # if api_v1_user_signed_in?
-    #   current_user_bookmarks = current_api_v1_user.bookmarks.select("spotify_album_id").map(&:spotify_album_id)
-    # else
-    #   current_user_bookmarks = nil
-    # end
-
-    # # uuidを元にpostを取得
-    # post = Post.find_by(uuid: params[:uuid])
-    # # postに紐づくalbumを取得
-    # album_ids = post.albums.pluck(:album_id)
-    # # Album.findに配列でidを渡すと一気に取得可能
-    # albums = RSpotify::Album.find(album_ids)
-
-    # # リリースデータを年のみのフォーマットに整える
-    # dates = []
-    # albums.each do |album|
-    #   if album.release_date.present?
-    #     dates << album.release_date.split('-')[0]
-    #   else
-    #     dates << ""
-    #   end
-    # end
-
-    # render json: { user: post.user,
-    #               albums: albums,
-    #               hash_tag: post.hash_tag,
-    #               dates: dates,
-    #               id: post.id,
-    #               post_uuid: post.uuid,
-    #               likes: post.likes,
-    #               currentUserBookmarks: current_user_bookmarks }
-
-
     album_ids = @post.albums.pluck(:album_id)
     albums = RSpotify::Album.find(album_ids)
 
@@ -158,13 +124,6 @@ class Api::V1::PostsController < ApplicationController
   end
 
   def destroy
-    # post = Post.find_by(uuid: params[:uuid])
-    # if post.destroy
-    #   render json: { message: "削除しました" }
-    # else
-    #   render json: { error: post.errors.full_messages }
-    # end
-
     if @post.destroy
       render json: { message: "削除しました" }
     else
