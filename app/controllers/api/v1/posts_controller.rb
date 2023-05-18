@@ -146,4 +146,24 @@ class Api::V1::PostsController < ApplicationController
       render json: { error: post.errors.full_messages }
     end
   end
+
+  def random
+    # ランダムに1つのPostを取得
+    post = Post.order("RANDOM()").first
+
+    if post
+      created_at = post.created_at.strftime("%Y年%m月%d日")
+      image_path = url_for(post.image)
+      render json: { 
+                    id: post.id,
+                    post_uuid: post.uuid,
+                    created_at: created_at,
+                    hash_tag: post.hash_tag, 
+                    image_path: image_path, 
+                    user: post.user,
+                    }
+    else
+      render json: { message: "No posts available" }
+    end
+  end
 end
