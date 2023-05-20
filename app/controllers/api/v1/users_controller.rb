@@ -1,7 +1,4 @@
 class Api::V1::UsersController < ApplicationController
-  require 'rspotify'
-  RSpotify.authenticate(ENV['SPOTIFY_CLIENT_ID'], ENV['SPOTIFY_SECRET_ID'])
-  
   def show_user
     user = User.find_by(uid: params[:uid])
     render json: { user: user }
