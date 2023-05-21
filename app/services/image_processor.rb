@@ -11,7 +11,7 @@ class ImageProcessor
     uuid = SecureRandom.hex(8)
     create_montage(tmp_images, uuid)
     cleanup_images(tmp_images)
-    uuid
+    [uuid, "./tmp/#{uuid}.jpg"]
   end
 
   private

@@ -16,7 +16,7 @@ class LikeSerializer < ActiveModel::Serializer
   end
 
   def created_at
-    object.post.created_at.strftime("%Y年%m月%d日")
+    object.post.formatted_created_at
   end
 
   def hash_tag
