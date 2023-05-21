@@ -20,7 +20,6 @@ class UserSerializer < ActiveModel::Serializer
 
   # post.created_atを年月日のフォーマットに整えてattributesに追加
   def created_at
-    object.created_at.strftime("%Y年%m月%d日")
+    object.formatted_created_at
   end
-
 end

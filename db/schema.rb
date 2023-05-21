@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_08_16_103454) do
+ActiveRecord::Schema.define(version: 2023_05_21_050435) do
 
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
@@ -66,7 +66,7 @@ ActiveRecord::Schema.define(version: 2022_08_16_103454) do
   end
 
   create_table "posts", force: :cascade do |t|
-    t.string "hash_tag", null: false
+    t.string "hash_tag", default: "#私を構成する9枚", null: false
     t.datetime "created_at", precision: 6, null: false
     t.datetime "updated_at", precision: 6, null: false
     t.integer "user_id", null: false

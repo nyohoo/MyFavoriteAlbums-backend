@@ -1,5 +1,3 @@
-# frozen_string_literal: true
-
 class User < ActiveRecord::Base
   extend Devise::Models
   # Include default devise modules. Others available are:
@@ -30,5 +28,20 @@ class User < ActiveRecord::Base
     crypt = ActiveSupport::MessageEncryptor.new(secret)
     self.access_token = crypt.encrypt_and_sign(access_token)
     self.access_token_secret = crypt.encrypt_and_sign(access_token_secret)
+  end
+
+  def format_bookmarks(bookmark_album_ids)
+    albums = RSpotify::Album.find(bookmark_album_ids)
+    dates = albums.map { |album| album.release_date.split('-')[0] if album.release_date }
+    albums.zip(dates).map do |album, date|
+      { 
+        albumId: album.id,
+        artistId: album.artists[0].id,
+        albumName: album.name,
+        albumArtist: album.artists[0].name,
+        albumImagePath: album.images[0]['url'],
+        albumReleaseDate: date 
+      }
+    end
   end
 end
