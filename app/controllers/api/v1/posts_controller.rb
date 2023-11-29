@@ -1,7 +1,10 @@
 class Api::V1::PostsController < ApplicationController
   include ApplicationHelper
-  before_action :api_v1_user_signed_in?, only: [:create, :destroy]
   before_action :set_post, only: [:show, :destroy]
+
+  # TwitterAPI暫定対応 作成前のユーザー確認をスキップ
+  # before_action :api_v1_user_signed_in?, only: [:create, :destroy]
+  before_action :api_v1_user_signed_in?, only: [:destroy]
 
   def index
     posts = paginate(Post.with_likes.newest_first, params[:page], 5)
@@ -41,6 +44,10 @@ class Api::V1::PostsController < ApplicationController
   end
 
   def create
+
+    # TwitterAPI暫定対応 ユーザーを共有のアカウントにする
+    current_api_v1_user = User.first
+
     # 画像を生成
     image_processor = ImageProcessor.new(post_params[:image_paths])
     uuid, image_path = image_processor.process_images
